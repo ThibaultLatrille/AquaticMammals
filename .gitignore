@@ -1,0 +1,16 @@
+.idea/
+__pycache__/
+.DS_Store
+.snakemake
+*.py[cod]
+*$py.class
+*.pdf
+*.xlsx
+.env
+.venv
+/out/
+utils/
+results/
+manuscript/
+data_processed/
+data/
