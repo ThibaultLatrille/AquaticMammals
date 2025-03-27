@@ -26,8 +26,12 @@ for executable in ["nodeomega", "readnodeomega"]:
 nodeomega_path = bayescode_path["nodeomega"]  # In case you want to specify the path to Bayescode bin folder
 readnodeomega_path = bayescode_path["readnodeomega"]  # In case you want to specify the path to Bayescode bin folder
 
-CDS_list = list(sorted(set([i.split("_")[0] for i in os.listdir(DATA_FOLDER) if not i.startswith(".")])))
+CDS_list = set([i.split("_")[0] for i in os.listdir(DATA_FOLDER) if not i.startswith(".") and i.endswith(".fasta")])
+# I modified "51725_NT_AL.tsv" to include the 191 species (file was malformed)
+# I modified "55435_NT_AL.rootree" that I copied from OrthoMam v12
+# For two CDS, the species don't match between files, I used the intersection: "3620_NT_AL"
 print(f"{len(CDS_list)} CDS found in {DATA_FOLDER}.")
+CDS_list = list(sorted(CDS_list))
 CDS_list = CDS_list[config['CDS_START_LIST']:config['CDS_END_LIST']]
 
 POINTS = config['POINTS']

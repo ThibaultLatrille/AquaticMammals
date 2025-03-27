@@ -1,7 +1,6 @@
 import os
 import argparse
 import pandas as pd
-import numpy as np
 from ete3 import Tree
 from Bio import SeqIO
 
@@ -13,18 +12,23 @@ def main(input_tree, input_fasta, input_tsv, output_tree, output_ali, output_tra
 
     os.makedirs(os.path.dirname(output_ali), exist_ok=True)
     tree = Tree(input_tree)
+    print(f"Found {len(tree.get_leaf_names())} species in {input_tree}.")
     fasta_dico = {f.id: f.seq for f in SeqIO.parse(open(input_fasta, 'r'), 'fasta')}
     print(f"Found {len(fasta_dico)} sequences in {input_fasta}.")
-    if len(fasta_dico) == 0:
-        exit(0)
-    assert set(fasta_dico) == set(tree.get_leaf_names()), f"{list(fasta_dico)} \n {list(tree.get_leaf_names())}"
+    if set(fasta_dico) != set(tree.get_leaf_names()):
+        set_diff = set(fasta_dico).symmetric_difference(set(tree.get_leaf_names()))
+        print(f"Warning: {set_diff} are different between the fasta and the tree files.")
 
     df_traits = pd.read_csv(input_tsv, sep="\t")
     print(f"Found {len(df_traits)} species in {input_tsv}.")
+    if set(fasta_dico) != set(df_traits["TaxonName"]):
+        set_diff = set(fasta_dico).symmetric_difference(set(df_traits["TaxonName"]))
+        print(f"Warning: {set_diff} are different between the fasta and the traits files.")
 
-    assert set(fasta_dico) == set(df_traits["TaxonName"]), f"{list(fasta_dico)} \n {list(df_traits['TaxonName'])}"
     species_to_keep = set(tree.get_leaf_names()).intersection(set(df_traits["TaxonName"])).intersection(set(fasta_dico))
     print(f"Found {len(species_to_keep)} species in common between the tree, fasta and traits files.")
+    if len(species_to_keep) == 0:
+        exit(1)
 
     # Write tree file
     tree.prune(species_to_keep, preserve_branch_length=True)
@@ -41,6 +45,7 @@ def main(input_tree, input_fasta, input_tsv, output_tree, output_ali, output_tra
     ali_file.close()
 
     # Write traits file
+    df_traits = df_traits[df_traits["TaxonName"].isin(species_to_keep)]
     df_traits.to_csv(output_traits, sep="\t", index=False)
 
 
@@ -54,4 +59,3 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--output_traits", type=str, required=True, help="Output traits file")
     args = parser.parse_args()
     main(args.input_tree, args.input_fasta, args.input_tsv, args.output_tree, args.output_ali, args.output_traits)
-
