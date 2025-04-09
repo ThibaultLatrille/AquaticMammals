@@ -9,10 +9,10 @@ import numpy as np
 dico_coeff = {
     "covariances": "cov",
     "correlation coefficients": "cor",
-    "posterior probabilities of a positive coefficient": "ppos",
+    "posterior probabilities of a positive coefficient": "ppos_cor",
     "precisions": "prec",
-    "partial correlation coefficients": "pcor",
-    "posterior probabilities of a positive partial coefficient": "ppos_pcor"
+    "partial correlation coefficients": "partcor",
+    "posterior probabilities of a positive partial coefficient": "ppos_partcor"
 }
 
 
