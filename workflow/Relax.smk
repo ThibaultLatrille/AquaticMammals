@@ -54,18 +54,18 @@ rule run_hyphy:
         ali=rules.hyphy_preprocess.output.ali,
         tree=rules.hyphy_preprocess.output.tree
     output:
-        f"{PROC_DATA}/Hyphy/{{CDS}}/nodeomega_{{chain}}.log"
+        log=f"{PROC_DATA}/Hyphy/{{CDS}}/hyphy.log",
+        json=f"{PROC_DATA}/Hyphy/{{CDS}}/placnr.fasta.RELAX.json",
     params:
-        chain_name=f"{PROC_DATA}/Hyphy/{{CDS}}/nodeomega_{{chain}}",
-        time="2-23:00",mem=1000,name=lambda wildcards: f"run_CDS{wildcards.CDS}_chain{wildcards.chain}",
-    shell: "{input.hyphy} {input.batch} --alignment {input.ali} --tree {input.tree} --test T --models Minimal > {params.chain_name}.log 2>&1;"
+        time="2-23:00",mem=1000,name=lambda wildcards: f"run_CDS{wildcards.CDS}",
+    shell: "{input.hyphy} {input.batch} --alignment {input.ali} --tree {input.tree} --test T --models Minimal > {output.log}.log 2>&1;"
 
 
 rule merge_hyphy:
     input:
         script=f"{FOLDER}/scripts/merge_hyphy.py",
-        cov=expand(rules.run_hyphy.output,CDS=CDS_list,chain=config['CHAINS'])
+        json=expand(rules.run_hyphy.output.json,CDS=CDS_list)
     output:
-        cov=f"{PROC_DATA}/Hyphy_merged.tsv"
+        tsv=f"{PROC_DATA}/Hyphy_merged.tsv"
     shell:
-        "python3 {input.script} --input_data {PROC_DATA}/Hyphy --output_file {output.cov}"
+        "python3 {input.script} --input_data {PROC_DATA}/Hyphy --output_file {output.tsv}"
