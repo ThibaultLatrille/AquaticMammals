@@ -9,7 +9,6 @@ import polars as pl
 def main(input_data, output_file):
     results_dico = defaultdict(list)
 
-    species_list = set()
     cds_list = sorted(os.listdir(input_data))
     for cds in cds_list:
         cds_path = f"{input_data}/{cds}"
@@ -31,6 +30,8 @@ def main(input_data, output_file):
 
     # Save with polars
     pl_df = pl.DataFrame(results_dico, strict=False)
+    # Sort the dataframe by the first column
+    pl_df = pl_df.sort("id")
     pl_df.write_csv(output_file, separator="\t", include_header=True)
 
 

@@ -65,6 +65,11 @@ def open_covar_file(covar_file):
             matrices[m] = extract_matrix(header, f, m)
     return header, matrices
 
+def open_tree_file(tree_file):
+    txt = open(tree_file).read()
+    if ":nan" in txt:
+        txt = txt.replace(":nan", ":0.0")
+    return Tree(txt, format=1)
 
 def main(input_data, output_cov, output_omega, input_traits):
     omega_dict = defaultdict(lambda: defaultdict(lambda: "NA"))
@@ -82,7 +87,7 @@ def main(input_data, output_cov, output_omega, input_traits):
             print(f"Missing {omega_path}")
             continue
 
-        omega_tree = Tree(omega_path, format=1)
+        omega_tree = open_tree_file(omega_path)
         for leave in omega_tree.get_leaves():
             species_list.add(leave.name)
             omega_dict[cds][leave.name] = leave.Omega
@@ -126,6 +131,8 @@ def main(input_data, output_cov, output_omega, input_traits):
 
     # Write cov file
     df_cov = pd.DataFrame(output_cov_dict)
+    # Sort the rows by the first column
+    df_cov = df_cov.sort_values(by=["id"])
     df_cov.to_csv(output_cov, sep="\t", index=False)
 
     # Write omega file
@@ -136,6 +143,8 @@ def main(input_data, output_cov, output_omega, input_traits):
         for species in sorted_species_list:
             output_omega_dict[species].append(omega[species])
     df_omega = pd.DataFrame(output_omega_dict)
+    # Sort the rows by the first column
+    df_omega = df_omega.sort_values(by=["id"])
     df_omega.to_csv(output_omega, sep="\t", index=False)
 
 

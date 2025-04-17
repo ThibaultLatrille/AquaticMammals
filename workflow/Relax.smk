@@ -12,19 +12,21 @@ CDS_list = set([i.split("_")[0] for i in os.listdir(DATA_FOLDER) if not i.starts
 # For two CDS, the species don't match between files, I used the intersection: "3620_NT_AL"
 print(f"{len(CDS_list)} CDS found in {DATA_FOLDER}.")
 CDS_list = list(sorted(CDS_list))
-CDS_list = CDS_list[config['CDS_START_LIST']:config['CDS_END_LIST']]
+if "CDS_LIST" in config:
+    CDS_list = [i for i in CDS_list if i in map(str,config['CDS_LIST'])]
+else:
+    CDS_list = CDS_list[config['CDS_START_LIST']:config['CDS_END_LIST']]
 
 hyphy_path = "/opt/homebrew/Caskroom/miniforge/base/envs/bioinfo/bin/hyphy"
 if not os.path.exists(hyphy_path):
     # Find executable in the path using whereis. If not found, raise an error.
     split = os.popen(f'whereis hyphy').read().split()
     if len(split) > 1:
-        exec_path = split[1].strip()
+        hyphy_path = split[1].strip()
     else:
         raise FileNotFoundError(f'hyphy not found. Please install Hyphy and add it to your path.')
 
 localrules: all,hyphy_preprocess,all_preprocess,merge_hyphy
-
 
 rule all:
     input:
@@ -46,7 +48,6 @@ rule all_preprocess:
     input:
         expand(rules.hyphy_preprocess.output.tree,CDS=CDS_list)
 
-
 rule run_hyphy:
     input:
         hyphy=hyphy_path,
@@ -58,8 +59,7 @@ rule run_hyphy:
         json=f"{PROC_DATA}/Hyphy/{{CDS}}/placnr.fasta.RELAX.json",
     params:
         time="2-23:00",mem=1000,name=lambda wildcards: f"run_CDS{wildcards.CDS}",
-    shell: "{input.hyphy} {input.batch} --alignment {input.ali} --tree {input.tree} --test T --models Minimal > {output.log}.log 2>&1;"
-
+    shell: "{input.hyphy} {input.batch} --alignment {input.ali} --tree {input.tree} --test T --models Minimal > {output.log} 2>&1;"
 
 rule merge_hyphy:
     input:

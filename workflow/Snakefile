@@ -29,7 +29,6 @@ readnodeomega_path = bayescode_path["readnodeomega"]  # In case you want to spec
 CDS_list = set([i.split("_")[0] for i in os.listdir(DATA_FOLDER) if not i.startswith(".") and i.endswith(".fasta")])
 # I modified "51725_NT_AL.tsv" to include the 191 species (file was malformed)
 # I modified "55435_NT_AL.rootree" that I copied from OrthoMam v12
-# For two CDS, the species don't match between files, I used the intersection: "3620_NT_AL"
 print(f"{len(CDS_list)} CDS found in {DATA_FOLDER}.")
 CDS_list = list(sorted(CDS_list))
 if "CDS_LIST" in config:
@@ -45,8 +44,8 @@ localrules: all,orthomam_preprocess,all_filter,merge_bayescode
 
 rule all:
     input:
-        f"{PROC_DATA}/OrthoMam_merged_cov.tsv",
-        f"{PROC_DATA}/OrthoMam_merged_omega.tsv"
+        f"{PROC_DATA}/Bayescode_merged_cov.tsv",
+        f"{PROC_DATA}/Bayescode_merged_omega.tsv"
 
 rule orthomam_preprocess:
     input:
@@ -77,7 +76,12 @@ rule run_bayescode:
         chain_name=f"{PROC_DATA}/OrthoMam/{{CDS}}/nodeomega_{{chain}}",
         time="2-23:00",mem=1000,name=lambda wildcards: f"run_CDS{wildcards.CDS}_chain{wildcards.chain}",
         cmd=lambda wildcards, input, output: "" if ("RESTART" in config and config["RESTART"] and os.path.exists(str(output))) else f"-a {input.ali} -t {input.tree} --traitsfile {input.traits} -u {POINTS}"
-    shell: "{nodeomega_path} {params.cmd} {params.chain_name}"
+    shell:
+        """
+        if [ -f "{params.chain_name}.chain.gz" ]; then gunzip -f {params.chain_name}.chain.gz; fi
+        if [ -f "{params.chain_name}.trace.gz" ]; then gunzip -f {params.chain_name}.trace.gz; fi
+        {nodeomega_path} {params.cmd} {params.chain_name}
+        """
 
 rule read_bayescode:
     input:
@@ -97,7 +101,7 @@ rule merge_bayescode:
         script=f"{FOLDER}/scripts/merge_bayescode.py",
         cov=expand(rules.read_bayescode.output,CDS=CDS_list,chain=config['CHAINS'])
     output:
-        cov=f"{PROC_DATA}/OrthoMam_merged_cov.tsv",
-        omega=f"{PROC_DATA}/OrthoMam_merged_omega.tsv"
+        cov=f"{PROC_DATA}/Bayescode_merged_cov.tsv",
+        omega=f"{PROC_DATA}/Bayescode_merged_omega.tsv"
     shell:
         "python3 {input.script} --input_data {PROC_DATA}/OrthoMam --output_cov {output.cov} --output_omega {output.omega}"

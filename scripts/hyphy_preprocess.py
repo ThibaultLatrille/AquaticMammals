@@ -5,9 +5,23 @@ from ete3 import Tree
 from Bio import SeqIO
 
 
+def remove_stop_codons(DNA_seq):
+    """
+    Replace stop codons by "---" in the sequence.
+    """
+    seq = ""
+    for i in range(0, len(DNA_seq), 3):
+        codon = DNA_seq[i:i + 3]
+        if codon.upper() in ["TAA", "TAG", "TGA"]:
+            seq += "---"
+        else:
+            seq += codon
+    return seq
+
+
 def write_fasta(dico_fasta, output, species=None):
     outfile = open(output, "w")
-    outfile.write("\n".join([f">{seq_id}\n{seq}" for seq_id, seq in dico_fasta.items() if
+    outfile.write("\n".join([f">{seq_id}\n{remove_stop_codons(seq)}" for seq_id, seq in dico_fasta.items() if
                              (species is None) or (seq_id in species)]))
     outfile.close()
 
@@ -46,9 +60,9 @@ def main(input_tree, input_fasta, input_tsv, output_tree, output_ali):
     # Set to T if all the leaves of the subtree are aquatic species, R otherwise
     for node in tree.traverse('preorder'):
         if all([leaf.name in aquatic_species for leaf in node.get_leaves()]):
-            node.name  = node.name + "{T}"
+            node.name = node.name + "{T}"
         else:
-            node.name  = node.name + "{R}"
+            node.name = node.name + "{R}"
 
     print(f"Found {len([leaf for leaf in tree.get_leaves() if "{T}" in leaf.name])} aquatic leaves in the tree.")
     print(f"Found {len([node for node in tree.traverse() if "{T}" in node.name])} aquatic nodes in the tree.")
