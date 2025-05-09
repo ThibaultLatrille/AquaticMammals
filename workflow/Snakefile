@@ -3,7 +3,7 @@ import os
 configfile: 'config/config.yaml'
 
 FOLDER = os.path.abspath('.')
-DATA_FOLDER = f"{FOLDER}/data/selected_genes"
+DATA_FOLDER = f"{FOLDER}/data/{config['DATA_FOLDER']}"
 PROC_DATA = f"{FOLDER}/data_processed"
 
 bayescode_path = {}

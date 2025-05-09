@@ -3,7 +3,7 @@ import os
 configfile: 'config/config.yaml'
 
 FOLDER = os.path.abspath('.')
-DATA_FOLDER = f"{FOLDER}/data/selected_genes"
+DATA_FOLDER = f"{FOLDER}/data/{config['DATA_FOLDER']}"
 PROC_DATA = f"{FOLDER}/data_processed"
 
 CDS_list = set([i.split("_")[0] for i in os.listdir(DATA_FOLDER) if not i.startswith(".") and i.endswith(".fasta")])

@@ -14,14 +14,10 @@ find "." -type f -name "*.param" | while read -r file; do
 done
 
 # Compress hyphy preprocessed files local
-tar -cvzf "hyphy.tar.gz" ./data_processed/Hyphy/
+tar -cvzf "data_processed.tar.gz" ./data_processed/
 
 # Uncompress the tar file in remote
-tar -xvzf "hyphy.tar.gz"
-rm -rf ./data_processed/Hyphy/._*
-rm -rf ./data_processed/Hyphy/*/._*
-touch ./data_processed/Hyphy/*/*
-
-/Users/tlatrille/Documents/AquaticMammals/utils/BayesCode/bin/nodeomega /Users/tlatrille/Documents/AquaticMammals/data_processed/OrthoMam/23345/nodeomega_1
-/Users/tlatrille/Documents/AquaticMammals/utils/BayesCode/bin/readnodeomega --every 1 --until 2000 --burnin 1000 --cov /Users/tlatrille/Documents/AquaticMammals/data_processed/OrthoMam/23345/nodeomega_1
-/Users/tlatrille/Documents/AquaticMammals/utils/BayesCode/bin/readnodeomega --every 1 --until 2000 --burnin 1000 --newick /Users/tlatrille/Documents/AquaticMammals/data_processed/OrthoMam/23345/nodeomega_1
+tar -xvzf "data_processed.tar.gz"
+rm -rf ./data_processed/*/._*
+rm -rf ./data_processed/*/*/._*
+# touch ./data_processed/*/*/*
